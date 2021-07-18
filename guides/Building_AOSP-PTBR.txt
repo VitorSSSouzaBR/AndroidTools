@@ -1,0 +1,239 @@
+###########################
+#                         #
+#   MAY 31, 2021 UPDATE   #
+#                         #
+###########################
+
+Este guia não está mais sendo mantido ou atualizado ativamente, pois eu não
+construí uma ROM Android desde 2017 ou até mesmo usei um dispositivo Android como meu diário
+motorista desde 2019. Estou deixando de lado, pois tem sido útil para muitos, mas você
+pode querer verificar alguns guias mais atualizados, como os abaixo:
+
+https://source.android.com/setup/build/building
+https://wiki.archlinux.org/title/Android#Building
+https://wiki.lineageos.org/build_guides.html
+
+
+###############################
+#
+#  BUILDING ANDROID FROM SOURCE
+#
+###############################
+
+Neste guia, examinarei como construir o Android em sua máquina Linux.
+Este tutorial específico se concentrará nos sabores do Ubuntu, mas isso deve funcionar com
+qualquer versão do Linux; Incluo uma referência para usuários do Arch que já foi feita.
+Sua versão DEVE ser de 64 bits. Vou deixar a instalação disso para cima
+para você, o Google é um recurso maravilhoso. Se você não tem um bom computador, mas
+ainda deseja construir, verifique este tópico no XDA:
+
+http://forum.xda-developers.com/chef-central/android/guide-how-to-build-rom-google-cloud-t3360430
+
+Formatando !!!
+Se algo tiver um $ na frente dele, esse é um comando que você precisa para executar em seu
+janela do terminal. Não inclua o $ ou o espaço que o segue.
+
+
+############################################
+#
+#  PASSO 1: Configurando seu Ambiente de Construção
+#
+############################################
+
+Você tem duas opções aqui, a maneira preguiçosa ou a maneira não preguiçosa.
+
+Caminho Automático (RECOMENDADO!):
+
+-- Pegue um repositório com alguns scripts úteis e execute o necessário
+
+$ sudo apt-get install git-core
+$ git clone https://github.com/akhilnarang/scripts
+$ cd scripts
+$ ls
+$ bash setup/<script-name>
+
+-- Execute o script correspondente à sua distribuição Linux:
+
+arch-manjaro.sh => Distros Baseadas em Arch
+android_build_env.sh => Ubuntu 14, Ubuntu 16, Ubuntu 18, Mint 19
+
+-- Maneira manual:
+-- Grab Java 8:
+
+$ sudo apt-get update
+$ sudo apt-get install openjdk-8-jdk
+$ sudo apt-get install openjdk-8-jre
+
+-- Instale Ferramentas de Compilação
+
+$ sudo apt-get install bc bison build-essential ccache curl flex \
+g++-multilib gcc-multilib git-core gnupg gperf imagemagick lib32ncurses5-dev \
+lib32z-dev libc6-dev-i386 libgl1-mesa-dev libssl-dev libx11-dev \
+libxml2-utils unzip x11proto-core-dev xsltproc zip zlib1g-dev
+
+OU 
+
+$ sudo apt-get install bc bison build-essential ccache curl flex && sudo apt-get install g++-multilib gcc-multilib git-core gnupg gperf imagemagick lib32ncurses5-dev && sudo apt-get install lib32z-dev libc6-dev-i386 libgl1-mesa-dev libssl-dev libx11-dev && sudo apt-get install libxml2-utils unzip x11proto-core-dev xsltproc zip zlib1g-dev
+
+NOTA: Usuários do Arch Linux, usem a página do wiki do Arch para instalar seus pacotes e
+volte aqui: https://wiki.archlinux.org/index.php/Android#Building_Android
+
+
+##############################
+#
+#  PASSO 2: Configurar Repo e Git
+#
+##############################
+
+NOTA: Se você tiver algum problema com os comandos abaixo, tente executar como root:
+$ sudo -s
+
+Git é um sistema de controle de versão de código aberto que é incrivelmente robusto para
+rastreando mudanças nos repositórios. Repo é a ferramenta do Google para trabalhar com Git
+no contexto do Android. Mais leitura se você estiver interessado:
+https://source.android.com/source/developing.html
+
+Execute estes comandos para fazer o repo funcionar (Apenas Necessário se você fez o Método Manual da Configuração Acima):
+
+$ curl https://storage.googleapis.com/git-repo-downloads/repo > repo
+$ chmod a+x repo
+$ sudo install repo /usr/local/bin
+$ rm repo
+
+Em seguida, execute estes comandos para fazer o git funcionar:
+
+$ git config --global user.name "Your Name"
+$ git config --global user.email "you@example.com"
+
+
+####################################
+#
+#  PASSO 3: Faça o Download do Codigo Fonte
+#
+####################################
+
+Primeiro, crie uma pasta para sua fonte:
+
+$ mkdir ~/Nome_da_Pasta ( exemplo: mkdir ~/Lineage )
+$ cd ~/Nome_da_Pasta
+
+Ao construir uma ROM, você deve fazer o Download do seu código-fonte. Todos, senão a maioria, As ROMs terão seu código-fonte Disponível no Github. Para baixar corretamente o código-fonte, siga estas etapas:
+-- Vá para o Github da ROM que Você quer Construir ( Exemplo: https://github.com/LineageOS )
+-- Procure o manifest ( Geralmente chamado de manifest ou android_manifest ).
+-- Acesse o repositório e certifique-se de que está no branch correto ( Localize o certo na aba de commits ).
+-- Vá para o README e procure um comando repo init. Se houver, copie e cole-o no terminal e pressione Enter .
+
+OBS: Se não existir, você pode fazer um nesse Formato:
+
+repo init -u URL_do_manifest_repo.git -b Nome_da_Branch
+
+EXEMPLO:
+$ repo init -u https://github.com/DirtyUnicorns/android_manifest.git -b o8x
+-- After the repo has been initialized, run this command to download the source:
+$ repo sync --force-sync -j$( nproc --all )
+-- Este processo pode demorar um pouco, dependendo da sua conexão com a Internet.
+
+
+####################
+#
+#  PASSO 4: Construir !!
+#
+####################
+
+Aqui está o momento da verdade ... hora de construir a ROM! Este processo pode levar
+15 minutos a muitas horas, dependendo da velocidade do seu PC, mas assumindo que
+você seguiu as instruções até agora, deve ser um cruzeiro tranquilo.
+
+Antes de compilar, você também pode considerar configurar o ccache, se puder poupar
+cerca de 50 GB. Caso contrário, pule esta seção. ccache é um cache de compilador, que mantém
+código previamente compilado armazenado para que possa ser facilmente reutilizado. Isso acelera
+tempos de construção drasticamente.
+
+Abra seu bashrc ou equivalente:
+$ nano ~/.bashrc
+- Anexe export USE_CCACHE = 1 ao final deste arquivo em seguida, pressione ctrl-X, Y e aperta Enter.
+$ source ~/.bashrc
+
+Depois disso, execute este comando se você usou o método manual da configuração acima
+$ prebuilts/misc/linux-x86/ccache/ccache -M 50G (ou quantos GB você quiser).
+Execute este comando se você usou o método automático de configuração acima
+$ ccache -M 50G
+
+Desde o Android 10, a maneira de usar o ccache mudou para:
+$ export USE_CCACHE=1
+$ export CCACHE_EXEC=$(command -v ccache)
+
+Depois disso, carregue os comandos de compilação:
+$ . build/envsetup.sh
+
+Em seguida, diga qual dispositivo você deseja fazer e deixe-o funcionar:
+$ breakfast <device> OU lunch
+$ mka bacon
+
+NOTA: Alguns ROMs podem usar seu próprio comando bacon, leia seu manifesto enquanto eles
+geralmente irá delinear isso.
+Outros podem não usar mka, usa make -j$( nproc --all )
+
+Se você receber um erro aqui, certifique-se de ter baixado todos os
+arquivos de fornecedor adequados do repositório de sua ROM.
+
+Assim que você disser mka bacon, o computador começará a construir. Vocês
+saberá que está feito quando vir uma mensagem dizendo make complete e
+informando onde seu zip flash está localizado.
+
+Sempre que você construir novamente, certifique-se de executar uma compilação limpa todas as vezes, colocando este comando entre os outros dois:
+$ make clobber
+
+É isso! Você compilou com sucesso uma ROM do zero :) Ao fazer isso, você
+controle quando você obtém os novos recursos, o que significa que assim que eles estiverem disponíveis
+no Github. Depois disso, você pode até querer começar a contribuir, um dos
+melhores coisas sobre o Android e software de código aberto em geral.
+
+##################
+#
+#  Problemas de Jack
+#
+##################
+
+Para aqueles de vocês que estão tendo problemas de jack (como dizer que você ficou sem memória),
+Siga esses passos.
+
+Digite isso em seu terminal, substituindo o # por quantos GBs de RAM
+você tem:
+$ export JACK_SERVER_VM_ARGUMENTS="-Dfile.encoding=UTF-8 -XX:+TieredCompilation -Xmx#g"
+
+Em seguida, vá para a raiz da pasta de origem e digite o seguinte:
+$ ./prebuilts/sdk/tools/jack-admin kill-server
+$ ./prebuilts/sdk/tools/jack-admin start-server
+
+This will restart the jack server to reflect your new heap limit.
+
+
+########################
+#
+#  Grupos de Ajuda e Suporte
+#
+########################
+
+Se você tiver problemas durante a construção, pode usar o seguinte grupo para obter assistência
+(certifique-se de ler as regras): https://t.me/AndroidBuildersHelp
+Este bate-papo é apenas para erros de construção ou para fazer com que a construção seja compilada.
+
+Depois de criar a ROM com sucesso, para qualquer assistência necessária, use este chat
+ https://t.me/AndroidBringup
+
+###############
+#
+#  Agradecimentos
+#
+###############
+
+@Mazda-- por liderar o projeto Dirty Unicorns, sua dedicação a
+open source, e me ajudando em pontos aleatórios durante a compilação.
+
+@BeansTown106 pelos vários conselhos e orientações que ele forneceu, mais
+suas contribuições para a comunidade de código aberto por meio do Projeto Pure Nexus.
+
+@akhilnarang por seus scripts de Ambiente de Construção.
+
+@npjohnson pelas instruções do Ubuntu 16.04 Java 7.
