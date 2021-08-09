@@ -19,6 +19,6 @@ brotli --decompress vendor.new.dat.br
 python3 sdat2img.py system.transfer.list system.new.dat system.img
 python3 sdat2img.py vendor.transfer.list vendor.new.dat vendor.img
 7z x system.img -y -osystem
-7z x vendor.img -y -ovendor
+
 
 exit 0
