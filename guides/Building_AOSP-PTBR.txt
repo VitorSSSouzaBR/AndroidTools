@@ -29,7 +29,7 @@ ainda deseja construir, verifique este tópico no XDA:
 
 http://forum.xda-developers.com/chef-central/android/guide-how-to-build-rom-google-cloud-t3360430
 
-Formatando !!!
+AVISO DE FORMATAÇÃO DE TEXTOS !!!
 Se algo tiver um $ na frente dele, esse é um comando que você precisa para executar em seu
 janela do terminal. Não inclua o $ ou o espaço que o segue.
 
