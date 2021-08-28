@@ -11,7 +11,7 @@ rm -rf vendor/xiaomi
 git clone git@github.com:fjunio97/vendor_xiaomi_ginkgo.git -b A11 vendor/xiaomi/ginkgo
 # MiuiCamera
 rm -rf vendor/miuicamera
-git clone git@github.com:fjunio97/vendor_miuicamera.git -b A11-MI-A3 vendor/miuicamera
+git clone git@github.com:fjunio97/vendor_miuicamera.git -b A11-Mi-A3 vendor/miuicamera
 # SD Clang
 rm -rf prebuilts/clang/host/linux-x86/clang-sdllvm
 git clone https://github.com/ThankYouMario/proprietary_vendor_qcom_sdclang -b ruby-12 prebuilts/clang/host/linux-x86/clang-sdllvm
